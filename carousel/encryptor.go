@@ -103,8 +103,8 @@ func newEncryptionBuffer(params Parameters) encryptionBuffer {
 // Returned Encryptor is safe for concurrent use.
 func (e *Encryptor) ShallowCopy() *Encryptor {
 	return &Encryptor{
-		Encoder: e.Encoder,
-		// RLWETransformer: e.RLWETransformer.ShallowCopy(),
+		Encoder:         e.Encoder,
+		RLWETransformer: e.RLWETransformer.ShallowCopy(),
 
 		Parameters: e.Parameters,
 
