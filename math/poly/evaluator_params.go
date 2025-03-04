@@ -1,6 +1,7 @@
 package poly
 
 import (
+	"math"
 	"math/big"
 	"math/rand"
 
@@ -253,11 +254,13 @@ func genResolution(M, bits, order int, gen uint64) []uint64 {
 	convolveAssign(compFFT, compInvFFT, crtBasisFFT)
 	rifftInPlace(crtBasisFFT, twRealInvFFT)
 	for i := 0; i < fftDegree; i++ {
-		crtBasisFFT[i] /= float64(fftDegree / 2)
+		crtBasisFFT[i] /= float64(fftDegree) / 2
 	}
 
 	crtBasis := make([]uint64, fftDegree)
-	convertFloat64ToUint64Assign(crtBasisFFT, crtBasis)
+	for i := 0; i < fftDegree; i++ {
+		crtBasis[i] = uint64(int64(math.Round(crtBasisFFT[i])))
+	}
 
 	N := (M - 1) / order
 	resolution := make([]uint64, N)

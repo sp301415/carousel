@@ -104,9 +104,6 @@ func (e *Evaluator) PermutePolyAssign(p0 Poly, d int, pOut Poly) {
 }
 
 // PermutePolyInPlace computes p0 = p0(X^d).
-//
-// Panics when d is not odd.
-// This is because the permutation is not bijective when d is even.
 func (e *Evaluator) PermutePolyInPlace(p0 Poly, d int) {
 	vec.RotateInPlace(p0.Coeffs, d)
 }

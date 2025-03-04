@@ -1,5 +1,7 @@
 package poly
 
+import "github.com/sp301415/carousel/math/vec"
+
 // AddFourierPoly returns fp0 + fp1.
 func (e *Evaluator) AddFourierPoly(fp0, fp1 FourierPoly) FourierPoly {
 	fpOut := e.NewFourierPoly()
@@ -71,4 +73,24 @@ func (e *Evaluator) MulAddFourierPolyAssign(fp0, fp1, fpOut FourierPoly) {
 // MulSubFourierPolyAssign computes fpOut -= fp0 * fp1.
 func (e *Evaluator) MulSubFourierPolyAssign(fp0, fp1, fpOut FourierPoly) {
 	elementWiseMulSubFloat64Assign(fp0.Coeffs, fp1.Coeffs, fpOut.Coeffs)
+}
+
+// PermuteFourierPoly returns f0(X^d).
+func (e *Evaluator) PermuteFourierPoly(fp0 FourierPoly, d int) FourierPoly {
+	fpOut := e.NewFourierPoly()
+	e.PermuteFourierPolyAssign(fp0, d, fpOut)
+	return fpOut
+}
+
+// PermuteFourierPolyAssign computes fpOut = fp0(X^d).
+//
+// fp0 and fpOut should not overlap. For inplace permutation,
+// use [*Evaluator.PermuteFourierPolyInPlace].
+func (e *Evaluator) PermuteFourierPolyAssign(fp0 FourierPoly, d int, fpOut FourierPoly) {
+	vec.RotateAssign(fp0.Coeffs, -d, fpOut.Coeffs)
+}
+
+// PermutePolyInPlace computes fp0 = fp0(X^d).
+func (e *Evaluator) PermuteFourierPolyInPlace(fp0 FourierPoly, d int) {
+	vec.RotateInPlace(fp0.Coeffs, -d)
 }

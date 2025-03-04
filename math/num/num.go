@@ -118,7 +118,7 @@ func IsPowerOfTwo[T Integer](x T) bool {
 // Log2 returns floor(log2(x)). Panics if x <= 0.
 func Log2[T Integer](x T) int {
 	if x <= 0 {
-		panic("Log2: non-positive log2 undefined")
+		panic("non-positive log2 undefined")
 	}
 
 	return int(bits.Len64(uint64(x))) - 1

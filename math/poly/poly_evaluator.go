@@ -2,7 +2,6 @@ package poly
 
 import (
 	"math"
-	"math/cmplx"
 
 	"github.com/sp301415/carousel/math/num"
 	"github.com/sp301415/carousel/math/vec"
@@ -13,21 +12,27 @@ const (
 	// Currently, this is set to 2^4, because AVX2 implementation of FFT and inverse FFT
 	// handles first/last two loops separately.
 	MinDegree = 1 << 4
+
+	// ShortLogBound is a maximum bound for the coefficients of "short" polynomials
+	// used in [*Evaluator.ShortFourierPolyMulPoly] functions.
+	// Currently, this is set to 16 bits.
+	ShortLogBound = 16
+
+	// splitLogBound is denotes the maximum bits of N*B1^2*B2^2, where B1, B2 is the splitting bound of polynomial multiplication.
+	// Currently, this is set to 48, which gives failure rate less than 2^-284.
+	splitLogBound = 48
 )
 
 // Evaluator computes polynomial operation over a subring.
 type Evaluator struct {
 	Parameters EvaluatorParameters
 
-	// twRealFFT is the twiddle factor for real FFT.
-	twRealFFT []complex128
-	// twRealInvFFT is the twiddle factor for inverse real FFT.
-	twRealInvFFT []complex128
+	FourierTransformer *RealFourierTransformer
 
-	// twFFT is the factor for FFT over the subring.
-	twFFT []float64
-	// twInvFFT is the factor for inverse FFT over the subring.
-	twInvFFT []float64
+	// tw is the twiddle factor for FFT over the subring.
+	tw []float64
+	// twInv is the twiddle factor for inverse FFT over the subring.
+	twInv []float64
 
 	buffer evaluationBuffer
 }
@@ -45,20 +50,17 @@ type evaluationBuffer struct {
 	fpInv FourierPoly
 	// pInv is the InvFFT value of fp.
 	pInv Poly
+
+	// pSplit is the split value of p0 in [*Evaluator.ShortFourierPolyMulPoly].
+	pSplit Poly
+	// fpShortSplit is the fourier transformed pSplit in [*Evaluator.ShortFourierPolyMulPoly].
+	fpShortSplit []FourierPoly
 }
 
 // NewEvaluatorWithParameters creates a new Evaluator with the given parameters.
 func NewEvaluator(params EvaluatorParameters) *Evaluator {
-	N := params.degree
-
-	switch {
-	case !num.IsPowerOfTwo(N):
-		panic("NewEvaluator: degree must be a power of two")
-	case N < MinDegree:
-		panic("NewEvaluator: degree smaller than MinDegree")
-	}
-
-	twRealFFT, twRealInvFFT := genTwiddleFactorsRealFFT(N)
+	N := params.Degree()
+	fft := NewRealFourierTransformer(N)
 
 	twFFT := make([]float64, N)
 	t := params.generator
@@ -75,8 +77,8 @@ func NewEvaluator(params EvaluatorParameters) *Evaluator {
 	}
 
 	vec.ReverseInPlace(twFFT[1:])
-	rfftInPlace(twFFT, twRealFFT)
-	rfftInPlace(twInvFFT, twRealFFT)
+	fft.FourierTransformInPlace(twFFT)
+	fft.FourierTransformInPlace(twInvFFT)
 
 	for i := 0; i < N; i++ {
 		twFFT[i] /= float64(N / 2)
@@ -86,60 +88,38 @@ func NewEvaluator(params EvaluatorParameters) *Evaluator {
 	return &Evaluator{
 		Parameters: params,
 
-		twRealFFT:    twRealFFT,
-		twRealInvFFT: twRealInvFFT,
+		FourierTransformer: fft,
 
-		twFFT:    twFFT,
-		twInvFFT: twInvFFT,
+		tw:    twFFT,
+		twInv: twInvFFT,
 
 		buffer: newEvaluationBuffer(N),
 	}
 }
 
-func genTwiddleFactorsRealFFT(N int) (twRealFFT, twRealInvFFT []complex128) {
-	twRealFFTIdx := make([]int, N/4)
-	t := N / 8
-	twRealFFTIdx[t] = 1
-	for m := 4; m <= N/4; m <<= 1 {
-		t >>= 1
-		twRealFFTIdx[t] = twRealFFTIdx[t<<1] << 1
-		for j := 3; j < m; j += 2 {
-			twRealFFTIdx[j*t] = 2*twRealFFTIdx[t] - twRealFFTIdx[(j-1)*t]
-		}
-	}
+// splitParameters generates splitBits and splitCount for [*Evaluator.MulPoly].
+func splitParameters(N int) (splitBits int, splitCount int) {
+	splitBits = (splitLogBound - num.Log2(N)) / 4
+	splitCount = int(math.Ceil(64 / float64(splitBits)))
+	return
+}
 
-	twRealFFTRef := make([]complex128, N/4)
-	twRealInvFFTRef := make([]complex128, N/4)
-	for i, e := range twRealFFTIdx {
-		x := -2 * math.Pi * float64(e) / float64(N)
-		twRealFFTRef[i] = cmplx.Exp(complex(0, x))
-		twRealInvFFTRef[i] = cmplx.Exp(-complex(0, x))
-	}
-
-	var w int
-	twRealFFT = make([]complex128, N/2)
-	w = 0
-	for m := 1; m <= N/4; m <<= 1 {
-		for i := 0; i < m; i++ {
-			twRealFFT[w] = twRealFFTRef[i]
-			w++
-		}
-	}
-
-	twRealInvFFT = make([]complex128, N/2)
-	w = 0
-	for m := N / 4; m >= 1; m >>= 1 {
-		for i := 0; i < m; i++ {
-			twRealInvFFT[w] = twRealInvFFTRef[i]
-			w++
-		}
-	}
-
-	return twRealFFT, twRealInvFFT
+// splitParametersShort generates splitBits and splitCount for [*Evaluator.ShortFourierPolyMulPoly].
+func splitParametersShort(N int) (splitBits int, splitCount int) {
+	splitBits = (splitLogBound - 2*ShortLogBound - num.Log2(N)) / 2
+	splitCount = int(math.Ceil(64 / float64(splitBits)))
+	return
 }
 
 // newEvaluationBuffer creates a new evaluationBuffer.
 func newEvaluationBuffer(N int) evaluationBuffer {
+	_, splitCount := splitParametersShort(N)
+
+	fpShortSplit := make([]FourierPoly, splitCount)
+	for i := 0; i < splitCount; i++ {
+		fpShortSplit[i] = NewFourierPoly(N)
+	}
+
 	return evaluationBuffer{
 		pOut:  NewPoly(N),
 		fpOut: NewFourierPoly(N),
@@ -147,6 +127,9 @@ func newEvaluationBuffer(N int) evaluationBuffer {
 		fp:    NewFourierPoly(N),
 		fpInv: NewFourierPoly(N),
 		pInv:  NewPoly(N),
+
+		pSplit:       NewPoly(N),
+		fpShortSplit: fpShortSplit,
 	}
 }
 
@@ -156,11 +139,10 @@ func (e *Evaluator) ShallowCopy() *Evaluator {
 	return &Evaluator{
 		Parameters: e.Parameters,
 
-		twRealFFT:    e.twRealFFT,
-		twRealInvFFT: e.twRealInvFFT,
+		FourierTransformer: e.FourierTransformer,
 
-		twFFT:    e.twFFT,
-		twInvFFT: e.twInvFFT,
+		tw:    e.tw,
+		twInv: e.twInv,
 
 		buffer: newEvaluationBuffer(e.Parameters.Degree()),
 	}

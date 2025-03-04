@@ -1,4 +1,4 @@
-package poly
+package poly_test
 
 import (
 	"math"
@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/sp301415/carousel/math/poly"
 	"github.com/sp301415/carousel/math/vec"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,8 +48,7 @@ func invFFTInPlaceRef(coeffs, twInv []complex128) {
 func TestRFFTAssembly(t *testing.T) {
 	N := 32
 	eps := 1e-10
-	evParams := NewEvaluatorParameters(N)
-	ev := NewEvaluator(evParams)
+	fft := poly.NewRealFourierTransformer(N)
 
 	r := rand.New(rand.NewSource(0))
 
@@ -79,10 +79,10 @@ func TestRFFTAssembly(t *testing.T) {
 	vec.BitReverseInPlace(twCmplxFFT)
 	vec.BitReverseInPlace(twCmplxInvFFT)
 
-	rfftInPlace(fp0, ev.twRealFFT)
-	rfftInPlace(fp1, ev.twRealFFT)
-	convolveAssign(fp0, fp1, fpOut)
-	rifftInPlace(fpOut, ev.twRealInvFFT)
+	fft.FourierTransformInPlace(fp0)
+	fft.FourierTransformInPlace(fp1)
+	fft.ConvolveAssign(fp0, fp1, fpOut)
+	fft.InvFourierTransformInPlace(fpOut)
 	for i := 0; i < N; i++ {
 		fpOut[i] /= float64(N / 2)
 	}
