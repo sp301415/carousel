@@ -124,9 +124,6 @@ func (e *Evaluator) genLookUpTableRawAssign(f func(int) int, lutRawOut [][]int) 
 
 	offset := num.DivRound(e.Parameters.lookUpTableSize, int(2*e.Parameters.messageModulus))
 	vec.RotateInPlace(e.buffer.lutReorder, -offset)
-	for i := e.Parameters.lookUpTableSize - offset; i < e.Parameters.lookUpTableSize; i++ {
-		e.buffer.lutReorder[i] = -e.buffer.lutReorder[i]
-	}
 
 	for i := 0; i < e.Parameters.polyExtendFactor; i++ {
 		for j := 0; j < e.Parameters.polyDegree; j++ {
