@@ -187,6 +187,27 @@ func MinN[T Real](x ...T) T {
 	return min
 }
 
+// ModInverse returns the modular inverse of x modulo m.
+// Output is always positive.
+// Panics if x and m are not coprime.
+func ModInverse(x, m uint64) uint64 {
+	x %= m
+
+	a, b := x, m
+	u, v := uint64(1), uint64(0)
+	for b != 0 {
+		q := a / b
+		a, b = b, a-q*b
+		u, v = v, u-q*v
+	}
+
+	if a != 1 {
+		panic("modular inverse does not exist")
+	}
+
+	return u % m
+}
+
 // ModExp returns x^y mod q.
 func ModExp(x, y, q uint64) uint64 {
 	r := uint64(1)

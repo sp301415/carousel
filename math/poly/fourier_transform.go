@@ -60,7 +60,7 @@ func (e *Evaluator) ToPolyAddAssign(fp FourierPoly, pOut Poly) {
 	e.FourierTransformer.InvFourierTransformInPlace(e.buffer.fpInv.Coeffs)
 	floatModQInPlace(e.buffer.fpInv.Coeffs)
 	convertFloat64ToUint64Assign(e.buffer.fpInv.Coeffs, e.buffer.pInv.Coeffs)
-	vec.AddAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, e.buffer.pInv.Coeffs)
+	vec.AddAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, pOut.Coeffs)
 }
 
 // ToPolySubAssign transforms FourierPoly to Poly and subtracts it from pOut.
@@ -71,7 +71,7 @@ func (e *Evaluator) ToPolySubAssign(fp FourierPoly, pOut Poly) {
 	e.FourierTransformer.InvFourierTransformInPlace(e.buffer.fpInv.Coeffs)
 	floatModQInPlace(e.buffer.fpInv.Coeffs)
 	convertFloat64ToUint64Assign(e.buffer.fpInv.Coeffs, e.buffer.pInv.Coeffs)
-	vec.SubAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, e.buffer.pInv.Coeffs)
+	vec.SubAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, pOut.Coeffs)
 }
 
 // ToPolyAssignUnsafe transforms FourierPoly to Poly and writes it to pOut.
@@ -96,7 +96,7 @@ func (e *Evaluator) ToPolyAddAssignUnsafe(fp FourierPoly, pOut Poly) {
 	e.FourierTransformer.InvFourierTransformInPlace(fp.Coeffs)
 	floatModQInPlace(fp.Coeffs)
 	convertFloat64ToUint64Assign(fp.Coeffs, e.buffer.pInv.Coeffs)
-	vec.AddAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, e.buffer.pInv.Coeffs)
+	vec.AddAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, pOut.Coeffs)
 }
 
 // ToPolySubAssignUnsafe transforms FourierPoly to Poly and subtracts it from pOut.
@@ -109,5 +109,5 @@ func (e *Evaluator) ToPolySubAssignUnsafe(fp FourierPoly, pOut Poly) {
 	e.FourierTransformer.InvFourierTransformInPlace(fp.Coeffs)
 	floatModQInPlace(fp.Coeffs)
 	convertFloat64ToUint64Assign(fp.Coeffs, e.buffer.pInv.Coeffs)
-	vec.SubAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, e.buffer.pInv.Coeffs)
+	vec.SubAssign(pOut.Coeffs, e.buffer.pInv.Coeffs, pOut.Coeffs)
 }

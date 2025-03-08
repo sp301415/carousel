@@ -262,6 +262,8 @@ func (p ParametersLiteral) Compile() Parameters {
 		polyDegree:              p.PolyDegree,
 		logPolyDegree:           num.Log2(p.PolyDegree),
 		polyEvaluatorParameters: polyEvaluatorParameters,
+		lookUpTableSize:         p.PolyDegree,
+		polyExtendFactor:        1,
 
 		lweStdDev:  p.LWEStdDev,
 		rlweStdDev: p.RLWEStdDev,
@@ -291,6 +293,10 @@ type Parameters struct {
 	logPolyDegree int
 	// polyEvaluatorParameters is the parameters for PolyEvaluator.
 	polyEvaluatorParameters poly.EvaluatorParameters
+	// LookUpTableSize is the size of Lookup Table used in Blind Rotation.
+	lookUpTableSize int
+	// PolyExtendFactor equals LookUpTableSize / PolyDegree.
+	polyExtendFactor int
 
 	// LWEStdDev is the normalized standard deviation used for gaussian error sampling in LWE encryption.
 	lweStdDev float64
@@ -339,6 +345,16 @@ func (p Parameters) LogPolyDegree() int {
 // PolyEvaluatorParameters is the parameters for PolyEvaluator.
 func (p Parameters) PolyEvaluatorParameters() poly.EvaluatorParameters {
 	return p.polyEvaluatorParameters
+}
+
+// LookUpTableSize is the size of LookUpTable used in Blind Rotation.
+func (p Parameters) LookUpTableSize() int {
+	return p.lookUpTableSize
+}
+
+// PolyExtendFactor returns LookUpTableSize / PolyDegree.
+func (p Parameters) PolyExtendFactor() int {
+	return p.polyExtendFactor
 }
 
 // LWEStdDev is the standard deviation used for gaussian error sampling in LWE encryption.

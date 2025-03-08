@@ -1,5 +1,7 @@
 package carousel
 
+import "github.com/sp301415/carousel/math/num"
+
 // Encrypt encodes and encrypts integer message to RLWE ciphertext.
 func (e *Encryptor) Encrypt(message int) RLWECiphertext {
 	ctOut := NewRLWECiphertext(e.Parameters)
@@ -156,8 +158,10 @@ func (e *Encryptor) DecryptRLevPlaintext(ct RLevCiphertext) RLWEPlaintext {
 
 // DecryptRLevPlaintextAssign decrypts RLev ciphertext to RLWE plaintext and writes it to ptOut.
 func (e *Encryptor) DecryptRLevPlaintextAssign(ct RLevCiphertext, ptOut RLWEPlaintext) {
-	ctLastLevel := ct.Value[ct.GadgetParameters.level-1]
-	e.DecryptRLWEPlaintextAssign(ctLastLevel, ptOut)
+	e.DecryptRLWEPlaintextAssign(ct.Value[0], ptOut)
+	for i := 0; i < e.Parameters.polyDegree; i++ {
+		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ())
+	}
 }
 
 // EncryptRGSWPlaintext encrypts RLWE plaintext to RGSW ciphertext.

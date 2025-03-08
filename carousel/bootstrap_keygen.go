@@ -38,19 +38,18 @@ func (e *Encryptor) GenBlindRotateKey() BlindRotateKey {
 	brk := NewBlindRotateKey(e.Parameters)
 
 	for i := 0; i < e.Parameters.lweDimension; i++ {
-		e.buffer.ptRGSW.Clear()
-		e.buffer.ptRGSW.Coeffs[0] = e.SecretKey.LWEKey.Value[i]
-		for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
-			e.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(k), e.buffer.ctRLWE.Value[0])
+		vec.Fill(e.buffer.ptRGSW.Coeffs, -e.SecretKey.LWEKey.Value[i])
+		for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
+			e.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(j), e.buffer.ctRLWE.Value[0])
 			e.EncryptRLWEBody(e.buffer.ctRLWE)
-			e.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[0].Value[k])
+			e.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[0].Value[j])
 		}
 
-		e.PolyEvaluator.ScalarMulAddPolyAssign(e.SecretKey.RLWEKey.Value, e.SecretKey.LWEKey.Value[i], e.buffer.ptRGSW)
-		for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
-			e.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(k), e.buffer.ctRLWE.Value[0])
+		e.PolyEvaluator.ScalarMulPolyAssign(e.SecretKey.RLWEKey.Value, e.SecretKey.LWEKey.Value[i], e.buffer.ptRGSW)
+		for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
+			e.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(j), e.buffer.ctRLWE.Value[0])
 			e.EncryptRLWEBody(e.buffer.ctRLWE)
-			e.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[0].Value[k])
+			e.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[1].Value[j])
 		}
 	}
 
@@ -82,19 +81,18 @@ func (e *Encryptor) GenBlindRotateKeyParallel() BlindRotateKey {
 		go func(idx int) {
 			eIdx := encryptorPool[idx]
 			for i := range jobs {
-				eIdx.buffer.ptRGSW.Clear()
-				eIdx.buffer.ptRGSW.Coeffs[0] = e.SecretKey.LWEKey.Value[i]
-				for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
-					eIdx.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(k), e.buffer.ctRLWE.Value[0])
-					eIdx.EncryptRLWEBody(e.buffer.ctRLWE)
-					eIdx.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[0].Value[k])
+				vec.Fill(eIdx.buffer.ptRGSW.Coeffs, -eIdx.SecretKey.LWEKey.Value[i])
+				for j := 0; j < eIdx.Parameters.blindRotateParameters.level; j++ {
+					eIdx.PolyEvaluator.ScalarMulPolyAssign(eIdx.buffer.ptRGSW, eIdx.Parameters.blindRotateParameters.BaseQ(j), eIdx.buffer.ctRLWE.Value[0])
+					eIdx.EncryptRLWEBody(eIdx.buffer.ctRLWE)
+					eIdx.ToFourierRLWECiphertextAssign(eIdx.buffer.ctRLWE, brk.Value[i].Value[0].Value[j])
 				}
 
-				eIdx.PolyEvaluator.ScalarMulAddPolyAssign(e.SecretKey.RLWEKey.Value, e.SecretKey.LWEKey.Value[i], e.buffer.ptRGSW)
-				for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
-					eIdx.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, e.Parameters.blindRotateParameters.BaseQ(k), e.buffer.ctRLWE.Value[0])
-					eIdx.EncryptRLWEBody(e.buffer.ctRLWE)
-					eIdx.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, brk.Value[i].Value[0].Value[k])
+				eIdx.PolyEvaluator.ScalarMulPolyAssign(eIdx.SecretKey.RLWEKey.Value, eIdx.SecretKey.LWEKey.Value[i], eIdx.buffer.ptRGSW)
+				for j := 0; j < eIdx.Parameters.blindRotateParameters.level; j++ {
+					eIdx.PolyEvaluator.ScalarMulPolyAssign(eIdx.buffer.ptRGSW, eIdx.Parameters.blindRotateParameters.BaseQ(j), eIdx.buffer.ctRLWE.Value[0])
+					eIdx.EncryptRLWEBody(eIdx.buffer.ctRLWE)
+					eIdx.ToFourierRLWECiphertextAssign(eIdx.buffer.ctRLWE, brk.Value[i].Value[1].Value[j])
 				}
 			}
 			wg.Done()
@@ -180,7 +178,7 @@ func (e *Encryptor) GenAutomorphismKeyForBootstrap() []RLWEKeySwitchKey {
 	atk := make([]RLWEKeySwitchKey, e.Parameters.polyDegree)
 	for i := 0; i < e.Parameters.polyDegree; i++ {
 		e.PolyEvaluator.PermutePolyAssign(e.SecretKey.RLWEKey.Value, i, skPermute.Value)
-		atk[i] = e.GenGLWEKeySwitchKey(skPermute, e.Parameters.keySwitchParameters)
+		atk[i] = e.GenGLWEKeySwitchKey(skPermute, e.Parameters.blindRotateParameters)
 	}
 	return atk
 }
@@ -214,7 +212,7 @@ func (e *Encryptor) GenAutomorphismKeyForBootstrapParallel() []RLWEKeySwitchKey 
 			skPermute := skPermutePool[idx]
 			for i := range jobs {
 				eIdx.PolyEvaluator.PermutePolyAssign(eIdx.SecretKey.RLWEKey.Value, i, skPermute.Value)
-				atk[i] = eIdx.GenGLWEKeySwitchKey(skPermute, eIdx.Parameters.keySwitchParameters)
+				atk[i] = eIdx.GenGLWEKeySwitchKey(skPermute, eIdx.Parameters.blindRotateParameters)
 			}
 			wg.Done()
 		}(c)

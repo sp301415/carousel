@@ -107,3 +107,55 @@ func (e *Evaluator) PermutePolyAssign(p0 Poly, d int, pOut Poly) {
 func (e *Evaluator) PermutePolyInPlace(p0 Poly, d int) {
 	vec.RotateInPlace(p0.Coeffs, d)
 }
+
+// rotateAddInPlace rotates v l times to the right in-place and adds it to vOut.
+// If l < 0, then it rotates the vector l times to the left.
+//
+// v and vOut should not overlap.
+func rotateAddAssign[T uint64 | float64](v []T, l int, vOut []T) {
+	if l < 0 {
+		l = len(v) - ((-l) % len(v))
+	} else {
+		l %= len(v)
+	}
+
+	for i, ii := 0, l; ii < len(vOut); i, ii = i+1, ii+1 {
+		vOut[ii] += v[i]
+	}
+	for i, ii := len(vOut)-l, 0; i < len(vOut); i, ii = i+1, ii+1 {
+		vOut[ii] += v[i]
+	}
+}
+
+// rotateSubInPlace rotates v l times to the right in-place and subtracts it from vOut.
+// If l < 0, then it rotates the vector l times to the left.
+//
+// v and vOut should not overlap.
+func rotateSubAssign[T uint64 | float64](v []T, l int, vOut []T) {
+	if l < 0 {
+		l = len(v) - ((-l) % len(v))
+	} else {
+		l %= len(v)
+	}
+
+	for i, ii := 0, l; ii < len(vOut); i, ii = i+1, ii+1 {
+		vOut[ii] -= v[i]
+	}
+	for i, ii := len(vOut)-l, 0; i < len(vOut); i, ii = i+1, ii+1 {
+		vOut[ii] -= v[i]
+	}
+}
+
+// PermuteAddPolyAssign computes pOut += p0(X^d).
+//
+// p0 and pOut should not overlap.
+func (e *Evaluator) PermuteAddPolyAssign(p0 Poly, d int, pOut Poly) {
+	rotateAddAssign(p0.Coeffs, d, pOut.Coeffs)
+}
+
+// PermuteSubPolyAssign computes pOut -= p0(X^d).
+//
+// p0 and pOut should not overlap.
+func (e *Evaluator) PermuteSubPolyAssign(p0 Poly, d int, pOut Poly) {
+	rotateSubAssign(p0.Coeffs, d, pOut.Coeffs)
+}

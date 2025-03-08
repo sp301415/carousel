@@ -77,13 +77,13 @@ func (e *Encryptor) EncryptLevPlaintextAssign(pt LWEPlaintext, ctOut LevCipherte
 // DecryptLev decrypts Lev ciphertext to integer message.
 func (e *Encryptor) DecryptLev(ct LevCiphertext) int {
 	pt := e.DecryptLevPlaintext(ct)
-	return int(num.DivRoundBits(pt.Value, ct.GadgetParameters.LogLastBaseQ()) % e.Parameters.messageModulus)
+	return int(pt.Value % e.Parameters.messageModulus)
 }
 
 // DecryptLevPlaintext decrypts Lev ciphertext to LWE plaintext.
 func (e *Encryptor) DecryptLevPlaintext(ct LevCiphertext) LWEPlaintext {
-	ctLastLevel := ct.Value[ct.GadgetParameters.level-1]
-	return e.DecryptLWEPlaintext(ctLastLevel)
+	pt := e.DecryptLWEPlaintext(ct.Value[0])
+	return LWEPlaintext{Value: num.DivRoundBits(pt.Value, ct.GadgetParameters.LogFirstBaseQ())}
 }
 
 // EncryptGSW encrypts integer message to GSW ciphertext.

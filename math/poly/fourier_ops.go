@@ -87,10 +87,24 @@ func (e *Evaluator) PermuteFourierPoly(fp0 FourierPoly, d int) FourierPoly {
 // fp0 and fpOut should not overlap. For inplace permutation,
 // use [*Evaluator.PermuteFourierPolyInPlace].
 func (e *Evaluator) PermuteFourierPolyAssign(fp0 FourierPoly, d int, fpOut FourierPoly) {
-	vec.RotateAssign(fp0.Coeffs, -d, fpOut.Coeffs)
+	vec.RotateAssign(fp0.Coeffs, d, fpOut.Coeffs)
 }
 
-// PermutePolyInPlace computes fp0 = fp0(X^d).
+// PermuteFourierPolyInPlace computes fp0 = fp0(X^d).
 func (e *Evaluator) PermuteFourierPolyInPlace(fp0 FourierPoly, d int) {
-	vec.RotateInPlace(fp0.Coeffs, -d)
+	vec.RotateInPlace(fp0.Coeffs, d)
+}
+
+// PermuteAddFourierPolyAssign computes fpOut += fp0(X^d).
+//
+// fp0 and fpOut should not overlap.
+func (e *Evaluator) PermuteAddFourierPolyAssign(fp0 FourierPoly, d int, fpOut FourierPoly) {
+	rotateAddAssign(fp0.Coeffs, d, fpOut.Coeffs)
+}
+
+// PermuteSubFourierPolyAssign computes fpOut -= fp0(X^d).
+//
+// fp0 and fpOut should not overlap.
+func (e *Evaluator) PermuteSubFourierPolyAssign(fp0 FourierPoly, d int, fpOut FourierPoly) {
+	rotateSubAssign(fp0.Coeffs, d, fpOut.Coeffs)
 }
