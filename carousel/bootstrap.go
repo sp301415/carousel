@@ -76,8 +76,8 @@ func (e *Evaluator) blindRotateBlockAssign(ct LWECiphertext, lut LookUpTable, ct
 	e.PolyEvaluator.ToPolyAssignUnsafe(e.buffer.ctBlockFourierAcc[0].Value[1], e.buffer.ctBlockAcc[0].Value[1])
 	e.PolyEvaluator.PermutePolyAssign(e.buffer.ctBlockAcc[0].Value[1], aN, e.buffer.pPermtue)
 	e.Decomposer.DecomposePolyAssign(e.buffer.pPermtue, e.Parameters.blindRotateParameters, polyDecomposed)
-	for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
-		e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[j], e.buffer.pPermtueFourierDecomposed[j])
+	for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
+		e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[k], e.buffer.pPermtueFourierDecomposed[k])
 	}
 	e.GadgetProductFourierDecomposedAddFourierRLWEAssign(e.EvaluationKey.AutomorphismKey[aN].Value, e.buffer.pPermtueFourierDecomposed, e.buffer.ctFourierAcc[0])
 
@@ -91,8 +91,8 @@ func (e *Evaluator) blindRotateBlockAssign(ct LWECiphertext, lut LookUpTable, ct
 		e.PolyEvaluator.ToPolyAssignUnsafe(e.buffer.ctBlockFourierAcc[0].Value[1], e.buffer.ctBlockAcc[0].Value[1])
 		e.PolyEvaluator.PermutePolyAssign(e.buffer.ctBlockAcc[0].Value[1], aN, e.buffer.pPermtue)
 		e.Decomposer.DecomposePolyAssign(e.buffer.pPermtue, e.Parameters.blindRotateParameters, polyDecomposed)
-		for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
-			e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[j], e.buffer.pPermtueFourierDecomposed[j])
+		for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
+			e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[k], e.buffer.pPermtueFourierDecomposed[k])
 		}
 		e.GadgetProductFourierDecomposedAddFourierRLWEAssign(e.EvaluationKey.AutomorphismKey[aN].Value, e.buffer.pPermtueFourierDecomposed, e.buffer.ctFourierAcc[0])
 	}
@@ -120,8 +120,8 @@ func (e *Evaluator) blindRotateBlockAssign(ct LWECiphertext, lut LookUpTable, ct
 		e.PolyEvaluator.ToPolyAssignUnsafe(e.buffer.ctBlockFourierAcc[0].Value[1], e.buffer.ctBlockAcc[0].Value[1])
 		e.PolyEvaluator.PermutePolyAssign(e.buffer.ctBlockAcc[0].Value[1], aN, e.buffer.pPermtue)
 		e.Decomposer.DecomposePolyAssign(e.buffer.pPermtue, e.Parameters.blindRotateParameters, polyDecomposed)
-		for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
-			e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[j], e.buffer.pPermtueFourierDecomposed[j])
+		for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
+			e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[k], e.buffer.pPermtueFourierDecomposed[k])
 		}
 		e.GadgetProductFourierDecomposedAddFourierRLWEAssign(e.EvaluationKey.AutomorphismKey[aN].Value, e.buffer.pPermtueFourierDecomposed, e.buffer.ctFourierAcc[0])
 
@@ -135,8 +135,8 @@ func (e *Evaluator) blindRotateBlockAssign(ct LWECiphertext, lut LookUpTable, ct
 			e.PolyEvaluator.ToPolyAssignUnsafe(e.buffer.ctBlockFourierAcc[0].Value[1], e.buffer.ctBlockAcc[0].Value[1])
 			e.PolyEvaluator.PermutePolyAssign(e.buffer.ctBlockAcc[0].Value[1], aN, e.buffer.pPermtue)
 			e.Decomposer.DecomposePolyAssign(e.buffer.pPermtue, e.Parameters.blindRotateParameters, polyDecomposed)
-			for j := 0; j < e.Parameters.blindRotateParameters.level; j++ {
-				e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[j], e.buffer.pPermtueFourierDecomposed[j])
+			for k := 0; k < e.Parameters.blindRotateParameters.level; k++ {
+				e.PolyEvaluator.ToFourierPolyAssign(polyDecomposed[k], e.buffer.pPermtueFourierDecomposed[k])
 			}
 			e.GadgetProductFourierDecomposedAddFourierRLWEAssign(e.EvaluationKey.AutomorphismKey[aN].Value, e.buffer.pPermtueFourierDecomposed, e.buffer.ctFourierAcc[0])
 		}
