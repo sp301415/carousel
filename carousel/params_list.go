@@ -6,7 +6,7 @@ var (
 		LWEDimension: 630,
 		PolyDegree:   2048,
 
-		LWEStdDev:  424411488321539.9,
+		LWEStdDev:  1046735069642755.8,
 		RLWEStdDev: 6405.772103413834,
 
 		BlockSize: 2,
