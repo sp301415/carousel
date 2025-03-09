@@ -60,6 +60,13 @@ func (e *Evaluator) ScalarMulSubFourierPolyAssign(fp0 FourierPoly, c float64, fp
 	scalarMulSubFloat64Assign(fp0.Coeffs, c, fpOut.Coeffs)
 }
 
+// MulFourierPoly returns fp0 * fp1.
+func (e *Evaluator) MulFourierPoly(fp0, fp1 FourierPoly) FourierPoly {
+	fpOut := e.NewFourierPoly()
+	e.MulFourierPolyAssign(fp0, fp1, fpOut)
+	return fpOut
+}
+
 // MulFourierPolyAssign computes fpOut = fp0 * fp1.
 func (e *Evaluator) MulFourierPolyAssign(fp0, fp1, fpOut FourierPoly) {
 	elementWiseMulFloat64Assign(fp0.Coeffs, fp1.Coeffs, fpOut.Coeffs)

@@ -1,6 +1,8 @@
 package carousel
 
 import (
+	"math"
+
 	"github.com/sp301415/carousel/math/num"
 	"github.com/sp301415/carousel/math/poly"
 )
@@ -426,4 +428,90 @@ func (p Parameters) Literal() ParametersLiteral {
 
 		EncodeType: p.encodeType,
 	}
+}
+
+// EstimateModSwitchStdDev returns an estimated standard deviation of error from modulus switching.
+func (p Parameters) EstimateModSwitchStdDev() float64 {
+	L := float64(p.lookUpTableSize)
+	q := math.Exp2(64)
+
+	h := float64(p.blockCount) * (float64(p.blockSize)) / (float64(p.blockSize + 1))
+
+	modSwitchVar := ((h + 1) * q * q) / (48 * L * L)
+
+	return math.Sqrt(modSwitchVar)
+}
+
+// EstimateBlindRotateStdDev returns an estimated standard deviation of error from Blind Rotation.
+func (p Parameters) EstimateBlindRotateStdDev() float64 {
+	n := float64(p.lweDimension)
+	N := float64(p.polyDegree)
+	M := float64(p.polyEvaluatorParameters.CyclotomicDegree())
+	o := float64(p.polyEvaluatorParameters.Order())
+	beta := p.rlweStdDev
+	q := math.Exp2(64)
+
+	h := float64(p.blockCount) * (float64(p.blockSize)) / (float64(p.blockSize + 1))
+
+	Bbr := float64(p.blindRotateParameters.Base())
+	Lbr := float64(p.blindRotateParameters.Level())
+
+	rotVar1 := n * (o * (h + (N-n)/2) * q * q) / (12 * math.Pow(Bbr, 2*Lbr))
+	rotVar2 := n * (M * Lbr * Bbr * Bbr * beta * beta) / 12
+	rotVarFFT := n * math.Exp2(-100) * (o * (h + (N-n)/2)) * M * (q * q) * Lbr * (Bbr * Bbr)
+	rotVar := rotVar1 + rotVar2 + rotVarFFT
+
+	muxVar1 := h * ((1 + o*(h+(N-n)/2)) * q * q) / (12 * math.Pow(Bbr, 2*Lbr))
+	muxVar2 := n * (M * 2 * Lbr * Bbr * Bbr * beta * beta) / 12
+	muxVarFFT := n * math.Exp2(-100) * (1 + o*(h+(N-n)/2)) * M * (q * q) * Lbr * (Bbr * Bbr)
+	muxVar := muxVar1 + muxVar2 + muxVarFFT
+
+	return math.Sqrt(rotVar + muxVar)
+}
+
+// EstimateBlindRotateExtractStdDev returns an estimated standard deviation of error from Blind Rotation and Sample Extraction.
+func (p Parameters) EstimateBlindRotateExtractStdDev() float64 {
+	switch p.encodeType {
+	case EncodeTypeCoeffs:
+		return p.EstimateBlindRotateStdDev()
+	case EncodeTypeSlots:
+		t := float64(p.messageModulus)
+		M := float64(p.polyEvaluatorParameters.CyclotomicDegree())
+
+		return math.Sqrt(M*t*t/12) * p.EstimateBlindRotateStdDev()
+	}
+
+	return 0
+}
+
+// EstimateKeySwitchForBootstrapStdDev returns an estimated standard deviation of error from Key Switching for bootstrapping.
+func (p Parameters) EstimateKeySwitchForBootstrapStdDev() float64 {
+	n := float64(p.lweDimension)
+	N := float64(p.polyDegree)
+	alpha := p.lweStdDev
+	q := math.Exp2(64)
+
+	Bks := float64(p.keySwitchParameters.Base())
+	Lks := float64(p.keySwitchParameters.Level())
+
+	keySwitchVar1 := ((N - n) / 2) * (q * q) / (12 * math.Pow(Bks, 2*Lks))
+	keySwitchVar2 := (N - n) * (alpha * alpha * Lks * Bks * Bks) / 12
+	keySwitchVar := keySwitchVar1 + keySwitchVar2
+
+	return math.Sqrt(keySwitchVar)
+}
+
+// EstimateMaxErrorStdDev returns an estimated standard deviation of maximum possible error.
+func (p Parameters) EstimateMaxErrorStdDev() float64 {
+	modSwitchStdDev := p.EstimateModSwitchStdDev()
+	blindRotateStdDev := p.EstimateBlindRotateExtractStdDev()
+	keySwitchStdDev := p.EstimateKeySwitchForBootstrapStdDev()
+
+	return math.Sqrt(modSwitchStdDev*modSwitchStdDev + blindRotateStdDev*blindRotateStdDev + keySwitchStdDev*keySwitchStdDev)
+}
+
+// EstimateFailureProbability returns the failure probability of bootstrapping.
+func (p Parameters) EstimateFailureProbability() float64 {
+	bound := math.Exp2(64) / (2 * float64(p.messageModulus))
+	return math.Erfc(bound / (math.Sqrt2 * p.EstimateMaxErrorStdDev()))
 }
