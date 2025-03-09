@@ -82,7 +82,7 @@ func (e *Evaluator) blindRotateBlockAssign(ct LWECiphertext, lut LookUpTable, ct
 	e.GadgetProductFourierDecomposedAddFourierRLWEAssign(e.EvaluationKey.AutomorphismKey[aN].Value, e.buffer.pPermtueFourierDecomposed, e.buffer.ctFourierAcc[0])
 
 	for j := 1; j < e.Parameters.blockSize; j++ {
-		e.ExternalProductFourierDecomposedFourierRLWEAssign(e.EvaluationKey.BlindRotateKey.Value[j], e.buffer.ctAccFourierDecomposed[0], e.buffer.ctBlockFourierAcc[0])
+		e.GadgetProductFourierDecomposedFourierRLWEAssign(e.EvaluationKey.BlindRotateKey.Value[j].Value[0], e.buffer.ctAccFourierDecomposed[0][0], e.buffer.ctBlockFourierAcc[0])
 		e.PolyEvaluator.SubFourierPolyAssign(e.buffer.ctFourierAcc[0].Value[0], e.buffer.ctBlockFourierAcc[0].Value[0], e.buffer.ctFourierAcc[0].Value[0])
 		e.PolyEvaluator.SubFourierPolyAssign(e.buffer.ctFourierAcc[0].Value[1], e.buffer.ctBlockFourierAcc[0].Value[1], e.buffer.ctFourierAcc[0].Value[1])
 

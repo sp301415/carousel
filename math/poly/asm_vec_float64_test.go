@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVecCmplxAssembly(t *testing.T) {
+func TestVecFloatAssembly(t *testing.T) {
 	N := 1 << 10
 	eps := 1e-10
 

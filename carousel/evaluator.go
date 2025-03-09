@@ -205,6 +205,8 @@ func (e *Evaluator) ShallowCopy() *Evaluator {
 		EvaluationKey: e.EvaluationKey,
 
 		modSwitchConstant: e.modSwitchConstant,
+		fMask:             e.fMask,
+		extractIdx:        e.extractIdx,
 
 		buffer: newEvaluationBuffer(e.Parameters),
 	}
