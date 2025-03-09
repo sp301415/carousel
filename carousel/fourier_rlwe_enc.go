@@ -127,7 +127,7 @@ func (e *Encryptor) DecryptFourierRLevPlaintext(ct FourierRLevCiphertext) RLWEPl
 func (e *Encryptor) DecryptFourierRLevPlaintextAssign(ct FourierRLevCiphertext, ptOut RLWEPlaintext) {
 	e.DecryptFourierRLWEPlaintextAssign(ct.Value[0], ptOut)
 	for i := 0; i < e.Parameters.polyDegree; i++ {
-		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ())
+		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base
 	}
 }
 

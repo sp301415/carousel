@@ -13,55 +13,56 @@ var (
 	LogN = []int{9, 10, 11, 12, 13, 14, 15}
 )
 
-// func BenchmarkOps(b *testing.B) {
-// 	for _, logN := range LogN {
-// 		N := 1 << logN
+func BenchmarkOps(b *testing.B) {
+	for _, logN := range LogN {
+		N := 1 << logN
 
-// 		pev := poly.NewEvaluator[uint64](N)
+		pParams := poly.NewEvaluatorParameters(N)
+		ev := poly.NewEvaluator(pParams)
 
-// 		p0 := pev.NewPoly()
-// 		p1 := pev.NewPoly()
-// 		pOut := pev.NewPoly()
+		p0 := ev.NewPoly()
+		p1 := ev.NewPoly()
+		pOut := ev.NewPoly()
 
-// 		for i := 0; i < pev.Degree(); i++ {
-// 			p0.Coeffs[i] = rand.Uint64()
-// 			p1.Coeffs[i] = rand.Uint64()
-// 		}
+		for i := 0; i < ev.Parameters.Degree(); i++ {
+			p0.Coeffs[i] = rand.Uint64()
+			p1.Coeffs[i] = rand.Uint64()
+		}
 
-// 		fp := pev.ToFourierPoly(p0)
+		fp := ev.ToFourierPoly(p0)
 
-// 		b.Run(fmt.Sprintf("LogN=%v/op=Add", logN), func(b *testing.B) {
-// 			for i := 0; i < b.N; i++ {
-// 				pev.AddPolyAssign(p0, p1, pOut)
-// 			}
-// 		})
+		b.Run(fmt.Sprintf("LogN=%v/op=Add", logN), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ev.AddPolyAssign(p0, p1, pOut)
+			}
+		})
 
-// 		b.Run(fmt.Sprintf("LogN=%v/op=Sub", logN), func(b *testing.B) {
-// 			for i := 0; i < b.N; i++ {
-// 				pev.SubPolyAssign(p0, p1, pOut)
-// 			}
-// 		})
+		b.Run(fmt.Sprintf("LogN=%v/op=Sub", logN), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ev.SubPolyAssign(p0, p1, pOut)
+			}
+		})
 
-// 		b.Run(fmt.Sprintf("LogN=%v/op=BinaryMul", logN), func(b *testing.B) {
-// 			for i := 0; i < b.N; i++ {
-// 				pev.ShortFourierPolyMulPolyAssign(p0, fp, pOut)
-// 			}
-// 		})
+		b.Run(fmt.Sprintf("LogN=%v/op=BinaryMul", logN), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ev.ShortFourierPolyMulPolyAssign(p0, fp, pOut)
+			}
+		})
 
-// 		b.Run(fmt.Sprintf("LogN=%v/op=Mul", logN), func(b *testing.B) {
-// 			for i := 0; i < b.N; i++ {
-// 				pev.MulPolyAssign(p0, p1, pOut)
-// 			}
-// 		})
-// 	}
-// }
+		b.Run(fmt.Sprintf("LogN=%v/op=Mul", logN), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ev.MulPolyAssign(p0, p1, pOut)
+			}
+		})
+	}
+}
 
 func BenchmarkFourierOps(b *testing.B) {
 	for _, logN := range LogN {
 		N := 1 << logN
 
-		pevParams := poly.NewEvaluatorParameters(N)
-		ev := poly.NewEvaluator(pevParams)
+		pParams := poly.NewEvaluatorParameters(N)
+		ev := poly.NewEvaluator(pParams)
 
 		fp0 := ev.NewFourierPoly()
 		fp1 := ev.NewFourierPoly()
@@ -95,9 +96,9 @@ func BenchmarkFourierOps(b *testing.B) {
 func BenchmarkFourierTransform(b *testing.B) {
 	for _, logN := range LogN {
 		N := 1 << logN
-		evParams := poly.NewEvaluatorParameters(N)
 
-		ev := poly.NewEvaluator(evParams)
+		pParams := poly.NewEvaluatorParameters(N)
+		ev := poly.NewEvaluator(pParams)
 
 		p := ev.NewPoly()
 		fp := ev.NewFourierPoly()

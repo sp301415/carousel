@@ -54,10 +54,26 @@ func TestEncoder(t *testing.T) {
 
 func TestEncryptor(t *testing.T) {
 	messages := []int{1, 2, 3}
+	gadgetParams := params.KeySwitchParameters()
+
 	t.Run("LWE", func(t *testing.T) {
 		for _, m := range messages {
 			ct := enc.EncryptLWE(m)
 			assert.Equal(t, m, enc.DecryptLWE(ct))
+		}
+	})
+
+	t.Run("Lev", func(t *testing.T) {
+		for _, m := range messages {
+			ct := enc.EncryptLev(m, gadgetParams)
+			assert.Equal(t, m, enc.DecryptLev(ct))
+		}
+	})
+
+	t.Run("GSW", func(t *testing.T) {
+		for _, m := range messages {
+			ct := enc.EncryptGSW(m, gadgetParams)
+			assert.Equal(t, m, enc.DecryptGSW(ct))
 		}
 	})
 
@@ -66,11 +82,35 @@ func TestEncryptor(t *testing.T) {
 		assert.Equal(t, messages, enc.DecryptRLWE(ct)[:len(messages)])
 	})
 
+	pt := carousel.NewRLWEPlaintext(params)
+	for i := 0; i < len(messages); i++ {
+		pt.Value.Coeffs[i] = uint64(messages[i])
+	}
+
+	t.Run("RLev", func(t *testing.T) {
+		ct := enc.EncryptRLevPlaintext(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptRLevPlaintext(ct))
+	})
+
+	t.Run("RGSW", func(t *testing.T) {
+		ct := enc.EncryptRGSWPlaintext(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptRGSWPlaintext(ct))
+	})
+
 	t.Run("FourierRLWE", func(t *testing.T) {
 		ct := enc.EncryptFourierRLWE(messages)
 		assert.Equal(t, messages, enc.DecryptFourierRLWE(ct)[:len(messages)])
 	})
 
+	t.Run("FourierRLev", func(t *testing.T) {
+		ct := enc.EncryptFourierRLevPlaintext(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptFourierRLevPlaintext(ct))
+	})
+
+	t.Run("FourierRGSW", func(t *testing.T) {
+		ct := enc.EncryptFourierRGSWPlaintext(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptFourierRGSWPlaintext(ct))
+	})
 }
 
 func TestEvaluator(t *testing.T) {

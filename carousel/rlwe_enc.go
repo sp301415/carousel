@@ -160,7 +160,7 @@ func (e *Encryptor) DecryptRLevPlaintext(ct RLevCiphertext) RLWEPlaintext {
 func (e *Encryptor) DecryptRLevPlaintextAssign(ct RLevCiphertext, ptOut RLWEPlaintext) {
 	e.DecryptRLWEPlaintextAssign(ct.Value[0], ptOut)
 	for i := 0; i < e.Parameters.polyDegree; i++ {
-		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ())
+		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base
 	}
 }
 
