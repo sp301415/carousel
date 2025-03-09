@@ -17,9 +17,9 @@ func (e *Encryptor) EncryptLWEAssign(message int, ctOut LWECiphertext) {
 
 // EncryptLWEPlaintext encrypts LWE plaintext to LWE ciphertext.
 func (e *Encryptor) EncryptLWEPlaintext(pt LWEPlaintext) LWECiphertext {
-	ct := NewLWECiphertext(e.Parameters)
-	e.EncryptLWEPlaintextAssign(pt, ct)
-	return ct
+	ctOut := NewLWECiphertext(e.Parameters)
+	e.EncryptLWEPlaintextAssign(pt, ctOut)
+	return ctOut
 }
 
 // EncryptLWEPlaintextAssign encrypts LWE plaintext to LWE ciphertext and writes it to ctOut.
@@ -38,80 +38,75 @@ func (e *Encryptor) EncryptLWEBody(ct LWECiphertext) {
 
 // DecryptLWE decrypts and decodes LWE ciphertext to integer message.
 func (e *Encryptor) DecryptLWE(ct LWECiphertext) int {
-	return e.DecodeLWE(e.DecryptLWEPlaintext(ct))
+	return e.DecodeLWE(e.DecryptLWEPhase(ct))
 }
 
-// DecryptLWEPlaintext decrypts LWE ciphertext to LWE plaintext.
-func (e *Encryptor) DecryptLWEPlaintext(ct LWECiphertext) LWEPlaintext {
+// DecryptLWEPhase decrypts LWE ciphertext to LWE plaintext with errors.
+func (e *Encryptor) DecryptLWEPhase(ct LWECiphertext) LWEPlaintext {
 	pt := ct.Value[0] + vec.Dot(ct.Value[1:], e.SecretKey.LWEKey.Value)
 	return LWEPlaintext{Value: pt}
 }
 
 // EncryptLev encrypts integer message to Lev ciphertext.
 func (e *Encryptor) EncryptLev(message int, gadgetParams GadgetParameters) LevCiphertext {
-	pt := LWEPlaintext{Value: uint64(message) % e.Parameters.messageModulus}
-	return e.EncryptLevPlaintext(pt, gadgetParams)
+	return e.EncryptLevScalar(uint64(message)%e.Parameters.messageModulus, gadgetParams)
 }
 
 // EncryptLevAssign encrypts integer message to Lev ciphertext and writes it to ctOut.
 func (e *Encryptor) EncryptLevAssign(message int, ctOut LevCiphertext) {
-	pt := LWEPlaintext{Value: uint64(message) % e.Parameters.messageModulus}
-	e.EncryptLevPlaintextAssign(pt, ctOut)
+	e.EncryptLevScalarAssign(uint64(message)%e.Parameters.messageModulus, ctOut)
 }
 
-// EncryptLevPlaintext encrypts LWE plaintext to Lev ciphertext.
-func (e *Encryptor) EncryptLevPlaintext(pt LWEPlaintext, gadgetParams GadgetParameters) LevCiphertext {
+// EncryptLevScalar encrypts scalar to Lev ciphertext.
+func (e *Encryptor) EncryptLevScalar(c uint64, gadgetParams GadgetParameters) LevCiphertext {
 	ct := NewLevCiphertext(e.Parameters, gadgetParams)
-	e.EncryptLevPlaintextAssign(pt, ct)
+	e.EncryptLevScalarAssign(c, ct)
 	return ct
 }
 
-// EncryptLevPlaintextAssign encrypts LWE plaintext to Lev ciphertext and writes it to ctOut.
-func (e *Encryptor) EncryptLevPlaintextAssign(pt LWEPlaintext, ctOut LevCiphertext) {
+// EncryptLevScalarAssign encrypts scalar to Lev ciphertext and writes it to ctOut.
+func (e *Encryptor) EncryptLevScalarAssign(c uint64, ctOut LevCiphertext) {
 	for i := 0; i < ctOut.GadgetParameters.level; i++ {
-		ctOut.Value[i].Value[0] = pt.Value << ctOut.GadgetParameters.LogBaseQ(i)
+		ctOut.Value[i].Value[0] = c << ctOut.GadgetParameters.LogBaseQ(i)
 		e.EncryptLWEBody(ctOut.Value[i])
 	}
 }
 
 // DecryptLev decrypts Lev ciphertext to integer message.
 func (e *Encryptor) DecryptLev(ct LevCiphertext) int {
-	pt := e.DecryptLevPlaintext(ct)
-	return int(pt.Value % e.Parameters.messageModulus)
+	return int(e.DecryptLevScalar(ct) % e.Parameters.messageModulus)
 }
 
-// DecryptLevPlaintext decrypts Lev ciphertext to LWE plaintext.
-func (e *Encryptor) DecryptLevPlaintext(ct LevCiphertext) LWEPlaintext {
-	pt := e.DecryptLWEPlaintext(ct.Value[0])
-	return LWEPlaintext{Value: num.DivRoundBits(pt.Value, ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base}
+// DecryptLevScalar decrypts Lev ciphertext to scalar.
+func (e *Encryptor) DecryptLevScalar(ct LevCiphertext) uint64 {
+	pt := e.DecryptLWEPhase(ct.Value[0])
+	return num.DivRoundBits(pt.Value, ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base
 }
 
 // EncryptGSW encrypts integer message to GSW ciphertext.
 func (e *Encryptor) EncryptGSW(message int, gadgetParams GadgetParameters) GSWCiphertext {
-	pt := LWEPlaintext{Value: uint64(message) % e.Parameters.messageModulus}
-	return e.EncryptGSWPlaintext(pt, gadgetParams)
+	return e.EncryptGSWScalar(uint64(message)%e.Parameters.messageModulus, gadgetParams)
 }
 
 // EncryptGSWAssign encrypts integer message to GSW ciphertext and writes it to ctOut.
 func (e *Encryptor) EncryptGSWAssign(message int, ctOut GSWCiphertext) {
-	pt := LWEPlaintext{Value: uint64(message) % e.Parameters.messageModulus}
-	e.EncryptGSWPlaintextAssign(pt, ctOut)
+	e.EncryptGSWScalarAssign(uint64(message)%e.Parameters.messageModulus, ctOut)
 }
 
-// EncryptGSWPlaintext encrypts LWE plaintext to GSW ciphertext.
-func (e *Encryptor) EncryptGSWPlaintext(pt LWEPlaintext, gadgetParams GadgetParameters) GSWCiphertext {
+// EncryptGSWScalar encrypts scalar to GSW ciphertext.
+func (e *Encryptor) EncryptGSWScalar(c uint64, gadgetParams GadgetParameters) GSWCiphertext {
 	ct := NewGSWCiphertext(e.Parameters, gadgetParams)
-	e.EncryptGSWPlaintextAssign(pt, ct)
+	e.EncryptGSWScalarAssign(c, ct)
 	return ct
 }
 
-// EncryptGSWPlaintextAssign encrypts LWE plaintext to GSW ciphertext and writes it to ctOut.
-func (e *Encryptor) EncryptGSWPlaintextAssign(pt LWEPlaintext, ctOut GSWCiphertext) {
-	e.EncryptLevPlaintextAssign(pt, ctOut.Value[0])
+// EncryptGSWScalarAssign encrypts scalar to GSW ciphertext and writes it to ctOut.
+func (e *Encryptor) EncryptGSWScalarAssign(c uint64, ctOut GSWCiphertext) {
+	e.EncryptLevScalarAssign(c, ctOut.Value[0])
 
 	for i := 0; i < e.Parameters.lweDimension; i++ {
 		for j := 0; j < ctOut.GadgetParameters.level; j++ {
-			ctOut.Value[i+1].Value[j].Value[0] = e.SecretKey.LWEKey.Value[i] * pt.Value << ctOut.GadgetParameters.LogBaseQ(j)
+			ctOut.Value[i+1].Value[j].Value[0] = e.SecretKey.LWEKey.Value[i] * c << ctOut.GadgetParameters.LogBaseQ(j)
 			e.EncryptLWEBody(ctOut.Value[i+1].Value[j])
 		}
 	}
@@ -122,7 +117,7 @@ func (e *Encryptor) DecryptGSW(ct GSWCiphertext) int {
 	return e.DecryptLev(ct.Value[0])
 }
 
-// DecryptGSWPlaintext decrypts GSW ciphertext to LWE plaintext.
-func (e *Encryptor) DecryptGSWPlaintext(ct GSWCiphertext) LWEPlaintext {
-	return e.DecryptLevPlaintext(ct.Value[0])
+// DecryptGSWScalar decrypts GSW ciphertext to scalar.
+func (e *Encryptor) DecryptGSWScalar(ct GSWCiphertext) uint64 {
+	return e.DecryptLevScalar(ct.Value[0])
 }

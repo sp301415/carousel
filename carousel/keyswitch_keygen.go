@@ -5,7 +5,7 @@ func (e *Encryptor) GenLWEKeySwitchKey(skIn LWESecretKey, gadgetParams GadgetPar
 	ksk := NewLWEKeySwitchKey(e.Parameters, len(skIn.Value), gadgetParams)
 
 	for i := 0; i < ksk.InputLWEDimension(); i++ {
-		e.EncryptLevPlaintextAssign(LWEPlaintext{Value: skIn.Value[i]}, ksk.Value[i])
+		e.EncryptLevScalarAssign(skIn.Value[i], ksk.Value[i])
 	}
 
 	return ksk
@@ -15,7 +15,7 @@ func (e *Encryptor) GenLWEKeySwitchKey(skIn LWESecretKey, gadgetParams GadgetPar
 func (e *Encryptor) GenGLWEKeySwitchKey(skIn RLWESecretKey, gadgetParams GadgetParameters) RLWEKeySwitchKey {
 	ksk := NewRLWEKeySwitchKey(e.Parameters, gadgetParams)
 
-	e.EncryptFourierRLevPlaintextAssign(RLWEPlaintext(skIn), ksk.Value)
+	e.EncryptFourierRLevPolyAssign(skIn.Value, ksk.Value)
 
 	return ksk
 }

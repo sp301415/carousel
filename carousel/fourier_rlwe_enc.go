@@ -1,6 +1,9 @@
 package carousel
 
-import "github.com/sp301415/carousel/math/num"
+import (
+	"github.com/sp301415/carousel/math/num"
+	"github.com/sp301415/carousel/math/poly"
+)
 
 // EncryptFourier encodes and encrypts integer message to FourierRLWE ciphertext.
 func (e *Encryptor) EncryptFourier(message int) FourierRLWECiphertext {
@@ -58,9 +61,9 @@ func (e *Encryptor) EncryptFourierRLWESlotsAssign(messages []int, ctOut FourierR
 
 // EncryptFourierRLWEPlaintext encrypts RLWE plaintext to FourierRLWE ciphertext.
 func (e *Encryptor) EncryptFourierRLWEPlaintext(pt RLWEPlaintext) FourierRLWECiphertext {
-	ct := NewFourierRLWECiphertext(e.Parameters)
-	e.EncryptFourierRLWEPlaintextAssign(pt, ct)
-	return ct
+	ctOut := NewFourierRLWECiphertext(e.Parameters)
+	e.EncryptFourierRLWEPlaintextAssign(pt, ctOut)
+	return ctOut
 }
 
 // EncryptFourierRLWEPlaintextAssign encrypts RLWE plaintext to FourierRLWE ciphertext and writes it to ctOut.
@@ -71,77 +74,77 @@ func (e *Encryptor) EncryptFourierRLWEPlaintextAssign(pt RLWEPlaintext, ctOut Fo
 
 // DecryptFourier decodes and decrypts FourierRLWE ciphertext to integer message.
 func (e *Encryptor) DecryptFourier(ct FourierRLWECiphertext) int {
-	e.DecryptFourierRLWEPlaintextAssign(ct, e.buffer.ptRLWE)
+	e.DecryptFourierRLWEPhaseAssign(ct, e.buffer.ptRLWE)
 	return e.DecodeRLWE(e.buffer.ptRLWE)[0]
 }
 
 // DecryptFourierRLWE decrypts and decodes FourierRLWE ciphertext to integer message.
 func (e *Encryptor) DecryptFourierRLWE(ct FourierRLWECiphertext) []int {
-	e.DecryptFourierRLWEPlaintextAssign(ct, e.buffer.ptRLWE)
+	e.DecryptFourierRLWEPhaseAssign(ct, e.buffer.ptRLWE)
 	return e.DecodeRLWE(e.buffer.ptRLWE)
 }
 
 // DecryptFourierRLWEAssign decrypts and decodes FourierRLWE ciphertext to integer message and writes it to messagesOut.
 func (e *Encryptor) DecryptFourierRLWEAssign(ct FourierRLWECiphertext, messagesOut []int) {
-	e.DecryptFourierRLWEPlaintextAssign(ct, e.buffer.ptRLWE)
+	e.DecryptFourierRLWEPhaseAssign(ct, e.buffer.ptRLWE)
 	e.DecodeRLWEAssign(e.buffer.ptRLWE, messagesOut)
 }
 
-// DecryptFourierRLWEPlaintext decrypts RLWE ciphertext to FourierRLWE plaintext.
-func (e *Encryptor) DecryptFourierRLWEPlaintext(ct FourierRLWECiphertext) RLWEPlaintext {
-	pt := NewRLWEPlaintext(e.Parameters)
-	e.DecryptFourierRLWEPlaintextAssign(ct, pt)
-	return pt
+// DecryptFourierRLWEPhase decrypts RLWE ciphertext to FourierRLWE plaintext with errors.
+func (e *Encryptor) DecryptFourierRLWEPhase(ct FourierRLWECiphertext) RLWEPlaintext {
+	ptOut := NewRLWEPlaintext(e.Parameters)
+	e.DecryptFourierRLWEPhaseAssign(ct, ptOut)
+	return ptOut
 }
 
-// DecryptFourierRLWEPlaintextAssign decrypts RLWE ciphertext to FourierRLWE plaintext and writes it to ptOut.
-func (e *Encryptor) DecryptFourierRLWEPlaintextAssign(ct FourierRLWECiphertext, ptOut RLWEPlaintext) {
+// DecryptFourierRLWEPhaseAssign decrypts RLWE ciphertext to FourierRLWE plaintext with errors and writes it to ptOut.
+func (e *Encryptor) DecryptFourierRLWEPhaseAssign(ct FourierRLWECiphertext, ptOut RLWEPlaintext) {
 	e.ToRLWECiphertextAssign(ct, e.buffer.ctRLWE)
-	e.DecryptRLWEPlaintextAssign(e.buffer.ctRLWE, ptOut)
+	e.DecryptRLWEPhaseAssign(e.buffer.ctRLWE, ptOut)
 }
 
-// EncryptFourierRLevPlaintext encrypts RLWE plaintext to RLev ciphertext.
-func (e *Encryptor) EncryptFourierRLevPlaintext(pt RLWEPlaintext, gadgetParams GadgetParameters) FourierRLevCiphertext {
-	ct := NewFourierRLevCiphertext(e.Parameters, gadgetParams)
-	e.EncryptFourierRLevPlaintextAssign(pt, ct)
-	return ct
+// EncryptFourierRLevPoly encrypts polynomial to RLev ciphertext.
+func (e *Encryptor) EncryptFourierRLevPoly(p poly.Poly, gadgetParams GadgetParameters) FourierRLevCiphertext {
+	ctOut := NewFourierRLevCiphertext(e.Parameters, gadgetParams)
+	e.EncryptFourierRLevPolyAssign(p, ctOut)
+	return ctOut
 }
 
-// EncryptFourierRLevPlaintextAssign encrypts RLWE plaintext to FourierRLev ciphertext and writes it to ctOut.
-func (e *Encryptor) EncryptFourierRLevPlaintextAssign(pt RLWEPlaintext, ctOut FourierRLevCiphertext) {
+// EncryptFourierRLevPolyAssign encrypts polynomial to FourierRLev ciphertext and writes it to ctOut.
+func (e *Encryptor) EncryptFourierRLevPolyAssign(p poly.Poly, ctOut FourierRLevCiphertext) {
 	for i := 0; i < ctOut.GadgetParameters.level; i++ {
-		e.PolyEvaluator.ScalarMulPolyAssign(pt.Value, ctOut.GadgetParameters.BaseQ(i), e.buffer.ctRLWE.Value[0])
+		e.PolyEvaluator.ScalarMulPolyAssign(p, ctOut.GadgetParameters.BaseQ(i), e.buffer.ctRLWE.Value[0])
 		e.EncryptRLWEBody(e.buffer.ctRLWE)
 		e.ToFourierRLWECiphertextAssign(e.buffer.ctRLWE, ctOut.Value[i])
 	}
 }
 
-// DecryptFourierRLevPlaintext decrypts FourierRLev ciphertext to RLWE plaintext.
-func (e *Encryptor) DecryptFourierRLevPlaintext(ct FourierRLevCiphertext) RLWEPlaintext {
-	pt := NewRLWEPlaintext(e.Parameters)
-	e.DecryptFourierRLevPlaintextAssign(ct, pt)
-	return pt
+// DecryptFourierRLevPoly decrypts FourierRLev ciphertext to polynomial.
+func (e *Encryptor) DecryptFourierRLevPoly(ct FourierRLevCiphertext) poly.Poly {
+	pOut := poly.NewPoly(e.Parameters.polyDegree)
+	e.DecryptFourierRLevPolyAssign(ct, pOut)
+	return pOut
 }
 
-// DecryptFourierRLevPlaintextAssign decrypts FourierRLev ciphertext to RLWE plaintext and writes it to ptOut.
-func (e *Encryptor) DecryptFourierRLevPlaintextAssign(ct FourierRLevCiphertext, ptOut RLWEPlaintext) {
-	e.DecryptFourierRLWEPlaintextAssign(ct.Value[0], ptOut)
+// DecryptFourierRLevPolyAssign decrypts FourierRLev ciphertext to polynomial and writes it to pOut.
+func (e *Encryptor) DecryptFourierRLevPolyAssign(ct FourierRLevCiphertext, pOut poly.Poly) {
+	e.DecryptFourierRLWEPhaseAssign(ct.Value[0], RLWEPlaintext{Value: pOut})
 	for i := 0; i < e.Parameters.polyDegree; i++ {
-		ptOut.Value.Coeffs[i] = num.DivRoundBits(ptOut.Value.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base
+		pOut.Coeffs[i] = num.DivRoundBits(pOut.Coeffs[i], ct.GadgetParameters.LogFirstBaseQ()) % ct.GadgetParameters.base
 	}
 }
 
-// EncryptFourierRGSWPlaintext encrypts RLWE plaintext to FourierRGSW ciphertext.
-func (e *Encryptor) EncryptFourierRGSWPlaintext(pt RLWEPlaintext, gadgetParams GadgetParameters) FourierRGSWCiphertext {
-	ct := NewFourierRGSWCiphertext(e.Parameters, gadgetParams)
-	e.EncryptFourierRGSWPlaintextAssign(pt, ct)
-	return ct
+// EncryptFourierRGSWPoly encrypts polynomial to FourierRGSW ciphertext.
+func (e *Encryptor) EncryptFourierRGSWPoly(p poly.Poly, gadgetParams GadgetParameters) FourierRGSWCiphertext {
+	ctOut := NewFourierRGSWCiphertext(e.Parameters, gadgetParams)
+	e.EncryptFourierRGSWPolyAssign(p, ctOut)
+	return ctOut
 }
 
-// EncryptFourierRGSWPlaintextAssign encrypts RLWE plaintext to FourierRGSW ciphertext and writes it to ctOut.
-func (e *Encryptor) EncryptFourierRGSWPlaintextAssign(pt RLWEPlaintext, ctOut FourierRGSWCiphertext) {
-	e.EncryptFourierRLevPlaintextAssign(pt, ctOut.Value[0])
-	e.PolyEvaluator.ShortFourierPolyMulPolyAssign(pt.Value, e.SecretKey.FourierRLWEKey.Value, e.buffer.ptRGSW)
+// EncryptFourierRGSWPolyAssign encrypts polynomial to FourierRGSW ciphertext and writes it to ctOut.
+func (e *Encryptor) EncryptFourierRGSWPolyAssign(p poly.Poly, ctOut FourierRGSWCiphertext) {
+	e.EncryptFourierRLevPolyAssign(p, ctOut.Value[0])
+	e.PolyEvaluator.ShortFourierPolyMulPolyAssign(p, e.SecretKey.FourierRLWEKey.Value, e.buffer.ptRGSW)
 	for i := 0; i < ctOut.GadgetParameters.level; i++ {
 		e.PolyEvaluator.ScalarMulPolyAssign(e.buffer.ptRGSW, ctOut.GadgetParameters.BaseQ(i), e.buffer.ctRLWE.Value[0])
 		e.EncryptRLWEBody(e.buffer.ctRLWE)
@@ -149,14 +152,14 @@ func (e *Encryptor) EncryptFourierRGSWPlaintextAssign(pt RLWEPlaintext, ctOut Fo
 	}
 }
 
-// DecryptFourierRGSWPlaintext decrypts FourierRGSW ciphertext to RLWE plaintext.
-func (e *Encryptor) DecryptFourierRGSWPlaintext(ct FourierRGSWCiphertext) RLWEPlaintext {
-	pt := NewRLWEPlaintext(e.Parameters)
-	e.DecryptFourierRGSWPlaintextAssign(ct, pt)
-	return pt
+// DecryptFourierRGSWPoly decrypts FourierRGSW ciphertext to polynomial.
+func (e *Encryptor) DecryptFourierRGSWPoly(ct FourierRGSWCiphertext) poly.Poly {
+	pOut := poly.NewPoly(e.Parameters.polyDegree)
+	e.DecryptFourierRGSWPolyAssign(ct, pOut)
+	return pOut
 }
 
-// DecryptFourierRGSWPlaintextAssign decrypts FourierRGSW ciphertext to RLWE plaintext and writes it to ptOut.
-func (e *Encryptor) DecryptFourierRGSWPlaintextAssign(ct FourierRGSWCiphertext, ptOut RLWEPlaintext) {
-	e.DecryptFourierRLevPlaintextAssign(ct.Value[0], ptOut)
+// DecryptFourierRGSWPolyAssign decrypts FourierRGSW ciphertext to polynomial and writes it to pOut.
+func (e *Encryptor) DecryptFourierRGSWPolyAssign(ct FourierRGSWCiphertext, pOut poly.Poly) {
+	e.DecryptFourierRLevPolyAssign(ct.Value[0], pOut)
 }

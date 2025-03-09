@@ -6,6 +6,7 @@ import (
 
 	"github.com/sp301415/carousel/carousel"
 	"github.com/sp301415/carousel/math/num"
+	"github.com/sp301415/carousel/math/poly"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -82,19 +83,19 @@ func TestEncryptor(t *testing.T) {
 		assert.Equal(t, messages, enc.DecryptRLWE(ct)[:len(messages)])
 	})
 
-	pt := carousel.NewRLWEPlaintext(params)
+	pt := poly.NewPoly(params.PolyDegree())
 	for i := 0; i < len(messages); i++ {
-		pt.Value.Coeffs[i] = uint64(messages[i])
+		pt.Coeffs[i] = uint64(messages[i])
 	}
 
 	t.Run("RLev", func(t *testing.T) {
-		ct := enc.EncryptRLevPlaintext(pt, gadgetParams)
-		assert.Equal(t, pt, enc.DecryptRLevPlaintext(ct))
+		ct := enc.EncryptRLevPoly(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptRLevPoly(ct))
 	})
 
 	t.Run("RGSW", func(t *testing.T) {
-		ct := enc.EncryptRGSWPlaintext(pt, gadgetParams)
-		assert.Equal(t, pt, enc.DecryptRGSWPlaintext(ct))
+		ct := enc.EncryptRGSWPoly(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptRGSWPoly(ct))
 	})
 
 	t.Run("FourierRLWE", func(t *testing.T) {
@@ -103,13 +104,13 @@ func TestEncryptor(t *testing.T) {
 	})
 
 	t.Run("FourierRLev", func(t *testing.T) {
-		ct := enc.EncryptFourierRLevPlaintext(pt, gadgetParams)
-		assert.Equal(t, pt, enc.DecryptFourierRLevPlaintext(ct))
+		ct := enc.EncryptFourierRLevPoly(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptFourierRLevPoly(ct))
 	})
 
 	t.Run("FourierRGSW", func(t *testing.T) {
-		ct := enc.EncryptFourierRGSWPlaintext(pt, gadgetParams)
-		assert.Equal(t, pt, enc.DecryptFourierRGSWPlaintext(ct))
+		ct := enc.EncryptFourierRGSWPoly(pt, gadgetParams)
+		assert.Equal(t, pt, enc.DecryptFourierRGSWPoly(ct))
 	})
 }
 
