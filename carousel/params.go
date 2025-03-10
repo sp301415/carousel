@@ -242,7 +242,7 @@ func (p ParametersLiteral) Compile() Parameters {
 	case p.BlockSize <= 0:
 		panic("BlockSize smaller than zero")
 	case p.LWEDimension%p.BlockSize != 0:
-		panic("LookUpTableSize not multiple of PolyDegree")
+		panic("LWEDimension not multiple of BlockSize")
 	case !num.IsPowerOfTwo(p.PolyDegree):
 		panic("PolyDegree not power of two")
 	case !num.IsPowerOfTwo(p.MessageModulus):
@@ -437,7 +437,7 @@ func (p Parameters) EstimateModSwitchStdDev() float64 {
 
 	h := float64(p.blockCount) * (float64(p.blockSize)) / (float64(p.blockSize + 1))
 
-	modSwitchVar := ((h + 1) * q * q) / (48 * L * L)
+	modSwitchVar := ((h + 1) * q * q) / (12 * L * L)
 
 	return math.Sqrt(modSwitchVar)
 }
@@ -463,7 +463,7 @@ func (p Parameters) EstimateBlindRotateStdDev() float64 {
 
 	muxVar1 := h * ((1 + o*(h+(N-n)/2)) * q * q) / (12 * math.Pow(Bbr, 2*Lbr))
 	muxVar2 := n * (M * 2 * Lbr * Bbr * Bbr * beta * beta) / 12
-	muxVarFFT := n * math.Exp2(-100) * (1 + o*(h+(N-n)/2)) * M * (q * q) * Lbr * (Bbr * Bbr)
+	muxVarFFT := n * math.Exp2(-100) * (1 + o*(h+(N-n)/2)) * M * (q * q) * 2 * Lbr * (Bbr * Bbr)
 	muxVar := muxVar1 + muxVar2 + muxVarFFT
 
 	return math.Sqrt(rotVar + muxVar)

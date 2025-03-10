@@ -18,6 +18,7 @@ var (
 	paramsList = []carousel.ParametersLiteral{
 		carousel.ParamsSlotsUint2,
 		carousel.ParamsSlotsUint3,
+		carousel.ParamsSlotsUint4,
 	}
 )
 
