@@ -65,9 +65,9 @@ type evaluationBuffer struct {
 	// This has length PolyExpandFactor.
 	ctAccFourierDecomposed [][][]poly.FourierPoly
 	// pPermute is the permuted ciphertext during Blind Rotation.
-	pPermtue poly.Poly
+	pPermute poly.Poly
 	// pPermuteFourierDecomposed is the fourier transformed pPermute during Blind Rotation.
-	pPermtueFourierDecomposed []poly.FourierPoly
+	pPermuteFourierDecomposed []poly.FourierPoly
 
 	// ctRotate is the blind rotated RLWE ciphertext for bootstrapping.
 	ctRotate RLWECiphertext
@@ -176,8 +176,8 @@ func newEvaluationBuffer(params Parameters) evaluationBuffer {
 		ctBlockFourierAcc:         ctBlockFourierAcc,
 		ctBlockAcc:                ctBlockAcc,
 		ctAccFourierDecomposed:    ctAccFourierDecomposed,
-		pPermtue:                  poly.NewPoly(params.polyDegree),
-		pPermtueFourierDecomposed: pPermuteFourierDecomposed,
+		pPermute:                  poly.NewPoly(params.polyDegree),
+		pPermuteFourierDecomposed: pPermuteFourierDecomposed,
 
 		ctRotate:                NewRLWECiphertext(params),
 		ctMask:                  NewRLWECiphertext(params),
